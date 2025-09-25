@@ -15,8 +15,8 @@ import { ElMessage } from 'element-plus'
 
 const onClick = async () => {
   ElMessage.success('你点击了按钮！')
-  // const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  // chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_ANNOTATION_MODE" });
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_ANNOTATION_MODE" });
 }
 
 const openSidePanel = async () => {
@@ -57,6 +57,9 @@ const openSidePanel = async () => {
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  .el-button+.el-button {
+    margin-left: 0;
+  }
 }
 
 .button-group .el-button {
