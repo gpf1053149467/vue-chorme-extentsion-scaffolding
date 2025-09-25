@@ -23,6 +23,8 @@ const openSidePanel = async () => {
   try {
     await chrome.sidePanel.open({ windowId: (await chrome.windows.getCurrent()).id })
     ElMessage.success('侧边栏已打开！')
+    // 关闭popup
+    window.close()
   } catch (error) {
     ElMessage.error('打开侧边栏失败：' + error.message)
   }
