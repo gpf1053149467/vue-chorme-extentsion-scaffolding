@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Vue3 Chrome Extension",
+  "version": "1.0.0",
+  "description": "A Chrome extension powered by Vue3 & Element Plus.",
+  "icons": {
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icon.png"
+  },
+  "permissions": []
+}
