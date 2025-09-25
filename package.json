@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
+    "serve": "vite build --watch & web-ext run --source-dir=dist --no-input",
     "build": "vite build"
   },
   "dependencies": {
@@ -12,7 +13,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",
     "vite": "^5.0.0",
-    "vite-plugin-static-copy": "^3.1.2"
+    "vite-plugin-static-copy": "^3.1.2",
+    "web-ext": "^8.10.0"
   },
   "type": "module"
 }
