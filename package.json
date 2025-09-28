@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "serve": "vite build --watch & web-ext run --source-dir=dist --no-input",
-    "build": "vite build"
+    "build": "vite build && vite build --config vite.content.config.js",
+    "build:content": "vite build --config vite.content.config.js"
   },
   "dependencies": {
     "element-plus": "^2.4.0",
