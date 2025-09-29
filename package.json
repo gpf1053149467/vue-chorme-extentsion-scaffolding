@@ -2,8 +2,9 @@
   "name": "chrome-extension-vue3",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "serve": "vite build --watch & web-ext run --source-dir=dist --no-input",
+    "dev": "npm run build && npm-run-all --parallel vite:watch content:watch",
+    "vite:watch": "vite build --watch",
+    "content:watch": "vite build --config vite.content.config.js --watch",
     "build": "vite build && vite build --config vite.content.config.js",
     "build:content": "vite build --config vite.content.config.js"
   },
@@ -13,9 +14,10 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",
+    "cross-env": "^10.0.0",
+    "npm-run-all": "^4.1.5",
     "vite": "^5.0.0",
-    "vite-plugin-static-copy": "^3.1.2",
-    "web-ext": "^8.10.0"
+    "vite-plugin-static-copy": "^3.1.2"
   },
   "type": "module"
 }
