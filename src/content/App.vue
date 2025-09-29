@@ -157,16 +157,12 @@ const hideDropdownMenu = () => {
 
 // 创建高亮框
 const createHoverBox = () => {
-  console.log('创建高亮框', { hoverBox: hoverBox.value })
   if (!hoverBox.value) {
     addStyles()
     hoverBox.value = document.createElement('div')
     hoverBox.value.className = 'hover-box'
     Object.assign(hoverBox.value.style, hoverBoxStyle)
     document.body.appendChild(hoverBox.value)
-    console.log('高亮框已创建并添加到页面', hoverBox.value)
-    console.log('高亮框样式:', hoverBox.value.style.cssText)
-    console.log('高亮框在DOM中的位置:', document.body.contains(hoverBox.value))
   }
 }
 
@@ -402,14 +398,6 @@ const handleMouseMove = (e) => {
   if (rect.width === 0 || rect.height === 0) {
     return
   }
-  
-  console.log('更新高亮框位置', { 
-    element: el.tagName, 
-    left: rect.left, 
-    top: rect.top, 
-    width: rect.width, 
-    height: rect.height 
-  })
   
   Object.assign(hoverBoxStyle, {
     display: 'block',
