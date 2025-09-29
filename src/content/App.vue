@@ -415,8 +415,6 @@ const handleMouseMove = (e) => {
     width: rect.width + 'px',
     height: rect.height + 'px'
   })
-  
-  console.log('高亮框最终样式:', hoverBox.value.style.cssText)
 }
 
 // 点击事件
