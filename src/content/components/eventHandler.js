@@ -72,36 +72,25 @@ export class EventHandler {
    * @param {MouseEvent} e - 鼠标事件
    */
   async handleClick(e) {
-    console.log('=== handleClick ===')
-    console.log('annotationMode:', this.annotationMode)
-    console.log('isContextMenuOpen:', this.isContextMenuOpen)
-    console.log('isDialogOpen:', this.isDialogOpen)
-    console.log('target:', e.target)
-    
     if (!this.annotationMode) return
     
     // 如果点击的是悬浮菜单相关元素，不处理点击事件
-    if (e.target.closest('.context-menu-overlay') || 
-        e.target.closest('.context-menu') ||
-        e.target.classList.contains('context-menu-overlay') ||
-        e.target.classList.contains('context-menu')) {
-      console.log('Clicked on context menu, ignoring')
+    if (e.target.closest('.mark-chrome-ext-context-menu-overlay') || 
+        e.target.closest('.mark-chrome-ext-context-menu') ||
+        e.target.classList.contains('mark-chrome-ext-context-menu-overlay') ||
+        e.target.classList.contains('mark-chrome-ext-context-menu')) {
       return
     }
     
     // 如果悬浮菜单打开，不处理点击事件
     if (this.isContextMenuOpen) {
-      console.log('Context menu is open, ignoring click')
       return
     }
     
     // 只对页面原始元素触发标注功能
     if (!isOriginalPageElement(e.target)) {
-      console.log('Not original page element, ignoring')
       return
     }
-    
-    console.log('Processing click for annotation')
     
     e.preventDefault()
     e.stopPropagation()
@@ -193,6 +182,9 @@ export class EventHandler {
    * @param {Object} annotationInfo - 标注信息
    */
   async handleEditAnnotation(annotationInfo) {
+    console.log('=== handleEditAnnotation ===')
+    console.log('annotationInfo:', annotationInfo)
+    
     if (!annotationInfo) return
     
     try {
@@ -201,11 +193,14 @@ export class EventHandler {
       
       // 设置标注框打开状态
       this.isDialogOpen = true
+      console.log('Calling annotationManager.editAnnotation with:', annotationInfo.selector, annotationInfo.text)
       
       const success = await this.annotationManager.editAnnotation(
         annotationInfo.selector, 
         annotationInfo.text
       )
+      
+      console.log('Edit annotation result:', success)
       
       if (success) {
         await this.renderAnnotations()

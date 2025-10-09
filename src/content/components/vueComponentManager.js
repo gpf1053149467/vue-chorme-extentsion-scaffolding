@@ -21,9 +21,10 @@ export class VueComponentManager {
    * @param {string} id - 组件ID
    * @param {Object} component - Vue组件
    * @param {Object} props - 组件props
+   * @param {Object} listeners - 事件监听器
    * @returns {Object} Vue应用实例
    */
-  createApp(id, component, props = {}) {
+  createApp(id, component, props = {}, listeners = {}) {
     // 如果已存在，先销毁
     if (this.apps.has(id)) {
       this.destroyApp(id)
@@ -32,11 +33,18 @@ export class VueComponentManager {
     // 创建容器
     const container = document.createElement('div')
     container.id = `vue-component-${id}`
+    container.className = 'mark-chrome-extension-container'
     document.body.appendChild(container)
     this.containers.set(id, container)
 
     // 创建Vue应用
     const app = createApp(component, props)
+    
+    // 添加事件监听器
+    Object.keys(listeners).forEach(event => {
+      app.config.globalProperties[`on${event.charAt(0).toUpperCase() + event.slice(1)}`] = listeners[event]
+    })
+    
     app.mount(container)
     this.apps.set(id, app)
 
@@ -160,6 +168,7 @@ export class AnnotationDialogManager {
     this.vueManager = new VueComponentManager()
     this.dialogApp = null
     this.dialogId = 'annotation-dialog'
+    this.currentEventHandler = null
   }
 
   /**
@@ -196,6 +205,22 @@ export class AnnotationDialogManager {
    */
   async showEditDialog(currentValue, options = {}) {
     return new Promise((resolve) => {
+      // 创建事件监听器
+      const handleEvent = (event) => {
+        const { type, value } = event.detail || {}
+        if (type === 'confirm') {
+          resolve(value)
+          this.hideDialog()
+        } else if (type === 'cancel') {
+          resolve(null)
+          this.hideDialog()
+        }
+      }
+
+      // 添加事件监听器
+      document.addEventListener('annotation-dialog-event', handleEvent)
+      this.currentEventHandler = handleEvent
+
       this.dialogApp = this.vueManager.createApp(this.dialogId, AnnotationDialog, {
         visible: true,
         title: options.title || '编辑标注',
@@ -203,15 +228,7 @@ export class AnnotationDialogManager {
         placeholder: options.placeholder || '请输入新的标注内容...',
         confirmText: options.confirmText || '确定',
         initialValue: currentValue,
-        type: 'edit',
-        onConfirm: (value) => {
-          resolve(value)
-          this.hideDialog()
-        },
-        onCancel: () => {
-          resolve(null)
-          this.hideDialog()
-        }
+        type: 'edit'
       })
     })
   }
@@ -249,6 +266,10 @@ export class AnnotationDialogManager {
     if (this.dialogApp) {
       this.vueManager.destroyApp(this.dialogId)
       this.dialogApp = null
+    }
+    if (this.currentEventHandler) {
+      document.removeEventListener('annotation-dialog-event', this.currentEventHandler)
+      this.currentEventHandler = null
     }
   }
 

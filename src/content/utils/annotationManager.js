@@ -91,12 +91,19 @@ export class AnnotationManager {
    * @param {string} currentText - 当前文本
    */
   async editAnnotation(selector, currentText) {
+    console.log('=== annotationManager.editAnnotation ===')
+    console.log('selector:', selector)
+    console.log('currentText:', currentText)
+    
     try {
+      console.log('Calling dialogManager.showEditDialog')
       const newText = await this.dialogManager.showEditDialog(currentText, {
         title: '编辑标注',
         label: '请输入新的备注：',
         placeholder: '请输入新的标注内容...'
       })
+
+      console.log('Dialog returned:', newText)
 
       if (newText) {
         await this.updateAnnotation(selector, newText)

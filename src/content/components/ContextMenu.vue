@@ -1,24 +1,24 @@
 <template>
-  <div 
-    v-if="visible" 
-    class="context-menu-overlay" 
-    @click="handleOverlayClick"
-  >
-    <div 
-      class="context-menu" 
-      :style="menuStyle"
-      @click.stop
-    >
-      <div class="context-menu-item edit" @click="handleEdit">
-        <span class="icon">✏️</span>
-        <span class="text">编辑</span>
-      </div>
-      <div class="context-menu-item delete" @click="handleDelete">
-        <span class="icon">🗑️</span>
-        <span class="text">删除</span>
-      </div>
-    </div>
-  </div>
+        <div
+          v-if="visible"
+          class="mark-chrome-ext-context-menu-overlay"
+          @click="handleOverlayClick"
+        >
+          <div
+            class="mark-chrome-ext-context-menu"
+            :style="menuStyle"
+            @click.stop
+          >
+            <div class="mark-chrome-ext-context-menu-item edit" @click="handleEdit">
+              <span class="icon">✏️</span>
+              <span class="text">编辑</span>
+            </div>
+            <div class="mark-chrome-ext-context-menu-item delete" @click="handleDelete">
+              <span class="icon">🗑️</span>
+              <span class="text">删除</span>
+            </div>
+          </div>
+        </div>
 </template>
 
 <script setup>

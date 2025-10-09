@@ -1,19 +1,19 @@
 <template>
-  <div v-if="visible" class="annotation-dialog-overlay" @click="handleOverlayClick">
-    <div class="annotation-dialog" @click.stop>
-      <div class="annotation-dialog-header">
+  <div v-if="visible" class="mark-chrome-ext-annotation-dialog-overlay" @click="handleOverlayClick">
+    <div class="mark-chrome-ext-annotation-dialog" @click.stop>
+      <div class="mark-chrome-ext-annotation-dialog-header">
         <h3>{{ title }}</h3>
-        <button class="close-btn" @click="handleCancel">×</button>
+        <button class="mark-chrome-ext-close-btn" @click="handleCancel">×</button>
       </div>
       
-      <div class="annotation-dialog-body">
-        <div class="form-group">
+      <div class="mark-chrome-ext-annotation-dialog-body">
+        <div class="mark-chrome-ext-form-group">
           <label>{{ label }}</label>
           <textarea 
             v-model="inputValue" 
             :placeholder="placeholder"
             rows="3"
-            class="annotation-input"
+            class="mark-chrome-ext-annotation-input"
             ref="inputRef"
             @keydown.enter.ctrl="handleConfirm"
             @keydown.escape="handleCancel"
@@ -21,9 +21,9 @@
         </div>
       </div>
       
-      <div class="annotation-dialog-footer">
-        <button class="btn btn-cancel" @click="handleCancel">取消</button>
-        <button class="btn btn-confirm" @click="handleConfirm" :disabled="!inputValue.trim()">
+      <div class="mark-chrome-ext-annotation-dialog-footer">
+        <button class="mark-chrome-ext-btn mark-chrome-ext-btn-cancel" @click="handleCancel">取消</button>
+        <button class="mark-chrome-ext-btn mark-chrome-ext-btn-confirm" @click="handleConfirm" :disabled="!inputValue.trim()">
           {{ confirmText }}
         </button>
       </div>
@@ -96,12 +96,24 @@ watch(() => props.initialValue, (newVal) => {
 const handleConfirm = () => {
   if (!inputValue.value.trim()) return
   
+  // 发送自定义DOM事件
+  const event = new CustomEvent('annotation-dialog-event', {
+    detail: { type: 'confirm', value: inputValue.value.trim() }
+  })
+  document.dispatchEvent(event)
+  
   emit('confirm', inputValue.value.trim())
   emit('update:visible', false)
 }
 
 // 处理取消
 const handleCancel = () => {
+  // 发送自定义DOM事件
+  const event = new CustomEvent('annotation-dialog-event', {
+    detail: { type: 'cancel' }
+  })
+  document.dispatchEvent(event)
+  
   emit('cancel')
   emit('update:visible', false)
 }

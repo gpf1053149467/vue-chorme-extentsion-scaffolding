@@ -32,7 +32,7 @@ export class HoverBox {
   create() {
     if (!this.element) {
       this.element = document.createElement('div')
-      this.element.className = 'hover-box'
+      this.element.className = 'mark-chrome-ext-hover-box'
       Object.assign(this.element.style, this.style)
       document.body.appendChild(this.element)
     }
@@ -90,14 +90,14 @@ export class AnnotationIcon {
    */
   static render(annotations, onContextMenu) {
     // 清理旧的标注图标
-    document.querySelectorAll('.annotation-icon').forEach(el => el.remove())
+    document.querySelectorAll('.mark-chrome-ext-annotation-icon').forEach(el => el.remove())
     
     Object.entries(annotations).forEach(([selector, text]) => {
       const target = document.querySelector(selector)
       if (target) {
         const icon = document.createElement('span')
         icon.textContent = '❗'
-        icon.className = 'annotation-icon'
+        icon.className = 'mark-chrome-ext-annotation-icon'
         icon.title = text
         
         // 右键菜单
@@ -116,6 +116,6 @@ export class AnnotationIcon {
    * 清理所有标注图标
    */
   static cleanup() {
-    document.querySelectorAll('.annotation-icon').forEach(el => el.remove())
+    document.querySelectorAll('.mark-chrome-ext-annotation-icon').forEach(el => el.remove())
   }
 }
