@@ -192,7 +192,7 @@ async function initApp() {
   console.log('Shadow DOM 已创建:', shadowRoot)
   
   // 在Shadow DOM中动态加载Element Plus的CSS
-  await loadElementPlusCSSInShadow(shadowRoot)
+  // await loadElementPlusCSSInShadow(shadowRoot)
   
   // 创建 Vue 应用实例
   const app = createApp(App)
