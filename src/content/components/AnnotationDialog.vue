@@ -98,7 +98,9 @@ const handleConfirm = () => {
   
   // 发送自定义DOM事件
   const event = new CustomEvent('annotation-dialog-event', {
-    detail: { type: 'confirm', value: inputValue.value.trim() }
+    detail: { type: 'confirm', value: inputValue.value.trim() },
+    bubbles: true,
+    composed: true
   })
   document.dispatchEvent(event)
   
@@ -110,7 +112,9 @@ const handleConfirm = () => {
 const handleCancel = () => {
   // 发送自定义DOM事件
   const event = new CustomEvent('annotation-dialog-event', {
-    detail: { type: 'cancel' }
+    detail: { type: 'cancel' },
+    bubbles: true,
+    composed: true
   })
   document.dispatchEvent(event)
   

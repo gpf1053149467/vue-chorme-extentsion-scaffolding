@@ -3,9 +3,8 @@
  * 负责标注的增删改查操作
  */
 
-import { ElMessage } from 'element-plus'
 import { getUniqueSelector } from './helpers.js'
-import { AnnotationDialogManager } from '../components/vueComponentManager.js'
+import { AnnotationDialogManager, ToastManager } from '../components/vueComponentManager.js'
 
 /**
  * 标注管理类
@@ -14,6 +13,7 @@ export class AnnotationManager {
   constructor() {
     this.annotations = {}
     this.dialogManager = new AnnotationDialogManager()
+    this.toastManager = new ToastManager()
   }
 
   /**
@@ -67,20 +67,23 @@ export class AnnotationManager {
    */
   async addAnnotation(element) {
     try {
+      console.log('AnnotationManager: Opening add dialog')
       const text = await this.dialogManager.showAddDialog({
         title: '添加标注',
         label: '请输入该元素的说明：',
         placeholder: '请输入标注内容...'
       })
-      
+
+      console.log('AnnotationManager: Dialog result', text)
+
       if (!text) return null
-      
+
       const selector = getUniqueSelector(element)
       await this.saveAnnotation(selector, text)
-      ElMessage.success('标注已添加')
+      this.toastManager.show('标注已添加', 'success')
       return selector
     } catch (error) {
-      // 用户取消操作
+      console.error('AnnotationManager: Error adding annotation', error)
       return null
     }
   }
@@ -94,7 +97,7 @@ export class AnnotationManager {
     console.log('=== annotationManager.editAnnotation ===')
     console.log('selector:', selector)
     console.log('currentText:', currentText)
-    
+
     try {
       console.log('Calling dialogManager.showEditDialog')
       const newText = await this.dialogManager.showEditDialog(currentText, {
@@ -107,7 +110,7 @@ export class AnnotationManager {
 
       if (newText) {
         await this.updateAnnotation(selector, newText)
-        ElMessage.success('标注已更新')
+        this.toastManager.show('标注已更新', 'success')
         return true
       }
     } catch (error) {
@@ -127,10 +130,10 @@ export class AnnotationManager {
         title: '删除确认',
         label: '确定要删除这个标注吗？'
       })
-      
+
       if (confirmed) {
         await this.deleteAnnotation(selector)
-        ElMessage.success('标注已删除')
+        this.toastManager.show('标注已删除', 'success')
         return true
       }
     } catch (error) {
@@ -147,6 +150,9 @@ export class AnnotationManager {
   destroy() {
     if (this.dialogManager) {
       this.dialogManager.destroy()
+    }
+    if (this.toastManager) {
+      this.toastManager.destroy()
     }
   }
 }

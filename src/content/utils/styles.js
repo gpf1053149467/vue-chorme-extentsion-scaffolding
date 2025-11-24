@@ -3,10 +3,19 @@
  * 负责管理所有标注相关的CSS样式
  */
 
+import { shadowRootInstance } from '../main.js'
+
 // 添加样式到页面
 export const addStyles = () => {
-  if (document.getElementById('mark-chrome-extension-styles')) return
-  
+  // 确保 Shadow Root 已创建
+  if (!shadowRootInstance) {
+    console.warn('Shadow Root not initialized yet, retrying in 100ms...')
+    setTimeout(addStyles, 100)
+    return
+  }
+
+  if (shadowRootInstance.getElementById('mark-chrome-extension-styles')) return
+
   const style = document.createElement('style')
   style.id = 'mark-chrome-extension-styles'
   style.textContent = `
@@ -32,7 +41,8 @@ export const addStyles = () => {
     .mark-chrome-extension-container .mark-chrome-ext-form-group,
     .mark-chrome-extension-container .mark-chrome-ext-annotation-input,
     .mark-chrome-extension-container .mark-chrome-ext-btn,
-    .mark-chrome-extension-container .mark-chrome-ext-close-btn {
+    .mark-chrome-extension-container .mark-chrome-ext-close-btn,
+    .mark-chrome-extension-container .mark-chrome-ext-toast {
       box-sizing: border-box;
     }
     
@@ -109,11 +119,12 @@ export const addStyles = () => {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
+      width: 100% !important;
+      height: 100% !important;
       z-index: 2147483647 !important;
       background: transparent !important;
       pointer-events: auto !important;
+      visibility: visible !important;
     }
     
     .mark-chrome-ext-context-menu {
@@ -161,6 +172,8 @@ export const addStyles = () => {
     .mark-chrome-ext-context-menu-item .icon {
       margin-right: 8px !important;
       font-size: 16px !important;
+      width: 20px !important;
+      text-align: center !important;
     }
     
     .mark-chrome-ext-context-menu-item .text {
@@ -172,13 +185,15 @@ export const addStyles = () => {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
+      width: 100% !important;
+      height: 100% !important;
       background: rgba(0, 0, 0, 0.5) !important;
       z-index: 2147483647 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+      visibility: visible !important; /* 覆盖父元素的 visibility: hidden */
+      pointer-events: auto !important; /* 覆盖父元素的 pointer-events: none */
     }
     
     .mark-chrome-ext-annotation-dialog {
@@ -245,6 +260,7 @@ export const addStyles = () => {
       font-size: 14px !important;
       font-weight: 500 !important;
       color: #333 !important;
+      padding: 0 !important;
     }
     
     .mark-chrome-ext-annotation-input {
@@ -259,6 +275,7 @@ export const addStyles = () => {
       box-sizing: border-box !important;
       margin: 0 !important;
       background: white !important;
+      color: #333 !important;
     }
     
     .mark-chrome-ext-annotation-input:focus {
@@ -285,6 +302,7 @@ export const addStyles = () => {
       border: 1px solid !important;
       transition: all 0.2s !important;
       margin: 0 !important;
+      line-height: 1.5 !important;
     }
     
     .mark-chrome-ext-btn-cancel {
@@ -315,12 +333,14 @@ export const addStyles = () => {
       cursor: not-allowed !important;
     }
   `
-  document.head.appendChild(style)
+  shadowRootInstance.appendChild(style)
 }
 
 // 移除样式
 export const removeStyles = () => {
-  const styleElement = document.getElementById('mark-chrome-extension-styles')
+  if (!shadowRootInstance) return
+
+  const styleElement = shadowRootInstance.getElementById('mark-chrome-extension-styles')
   if (styleElement) {
     styleElement.remove()
   }

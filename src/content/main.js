@@ -1,10 +1,12 @@
 // Content script 入口文件
 console.log('Vue Content Script loaded!')
 
-// 导入 Vue 和 Element Plus
+// 导入 Vue
 import { createApp } from 'vue'
-import ElementPlus from 'element-plus'
 import App from './App.vue'
+
+// 导出 Shadow Root 实例供其他模块使用
+export let shadowRootInstance = null
 
 // 初始化应用
 async function initApp() {
@@ -30,14 +32,21 @@ async function initApp() {
   
   // 创建 Shadow DOM
   const shadowRoot = container.attachShadow({ mode: 'open' })
+  shadowRootInstance = shadowRoot
   console.log('Shadow DOM 已创建:', shadowRoot)
   
   // 创建 Vue 应用实例
   const app = createApp(App)
-  app.use(ElementPlus)
+  // 移除 Element Plus
+  // app.use(ElementPlus)
   
   // 在 Shadow DOM 中挂载应用
-  app.mount(shadowRoot)
+  // 创建一个挂载点
+  const mountPoint = document.createElement('div')
+  mountPoint.id = 'app-mount-point'
+  shadowRoot.appendChild(mountPoint)
+  
+  app.mount(mountPoint)
   console.log('Vue 应用已挂载到 Shadow DOM')
 }
 

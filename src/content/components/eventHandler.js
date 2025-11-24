@@ -3,11 +3,10 @@
  * 负责处理鼠标事件、消息监听等
  */
 
-import { ElMessage } from 'element-plus'
 import { isOriginalPageElement } from '../utils/helpers.js'
 import { AnnotationManager } from '../utils/annotationManager.js'
 import { HoverBox, AnnotationIcon } from './uiComponents.js'
-import { ContextMenuManager } from './vueComponentManager.js'
+import { ContextMenuManager, ToastManager } from './vueComponentManager.js'
 
 /**
  * 事件处理器类
@@ -20,7 +19,8 @@ export class EventHandler {
     this.hoverBox = new HoverBox()
     this.contextMenuManager = new ContextMenuManager()
     this.annotationManager = new AnnotationManager()
-    
+    this.toastManager = new ToastManager()
+
     // 绑定方法
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleClick = this.handleClick.bind(this)
@@ -34,19 +34,19 @@ export class EventHandler {
    */
   handleMouseMove(e) {
     if (!this.annotationMode || !this.hoverBox.element || this.isDialogOpen) return
-    
+
     const el = e.target
-    
+
     // 只对页面原始元素显示高亮框
     if (!isOriginalPageElement(el)) {
       return
     }
-    
+
     // 跳过一些不需要高亮的元素
     if (el === this.hoverBox.element || el === document.body || el === document.documentElement) {
       return
     }
-    
+
     // 跳过文本节点，选择其父元素
     let targetElement = el
     if (el.nodeType === Node.TEXT_NODE) {
@@ -56,14 +56,14 @@ export class EventHandler {
         return
       }
     }
-    
+
     const rect = targetElement.getBoundingClientRect()
-    
+
     // 确保元素有可见的尺寸
     if (rect.width === 0 || rect.height === 0) {
       return
     }
-    
+
     this.hoverBox.show(rect)
   }
 
@@ -73,37 +73,37 @@ export class EventHandler {
    */
   async handleClick(e) {
     if (!this.annotationMode) return
-    
+
     // 如果点击的是悬浮菜单相关元素，不处理点击事件
-    if (e.target.closest('.mark-chrome-ext-context-menu-overlay') || 
-        e.target.closest('.mark-chrome-ext-context-menu') ||
-        e.target.classList.contains('mark-chrome-ext-context-menu-overlay') ||
-        e.target.classList.contains('mark-chrome-ext-context-menu')) {
+    if (e.target.closest('.mark-chrome-ext-context-menu-overlay') ||
+      e.target.closest('.mark-chrome-ext-context-menu') ||
+      e.target.classList.contains('mark-chrome-ext-context-menu-overlay') ||
+      e.target.classList.contains('mark-chrome-ext-context-menu')) {
       return
     }
-    
+
     // 如果悬浮菜单打开，不处理点击事件
     if (this.isContextMenuOpen) {
       return
     }
-    
+
     // 只对页面原始元素触发标注功能
     if (!isOriginalPageElement(e.target)) {
       return
     }
-    
+
     e.preventDefault()
     e.stopPropagation()
-    
+
     try {
       // 隐藏高亮框
       this.hoverBox.hide()
-      
+
       // 设置标注框打开状态
       this.isDialogOpen = true
-      
+
       const selector = await this.annotationManager.addAnnotation(e.target)
-      
+
       if (selector) {
         await this.renderAnnotations()
       }
@@ -131,38 +131,38 @@ export class EventHandler {
   async handleAnnotationContextMenu(e, selector, text) {
     console.log('=== handleAnnotationContextMenu ===')
     console.log('Setting isContextMenuOpen to true')
-    
+
     e.preventDefault()
     e.stopPropagation()
-    
+
     try {
       // 隐藏高亮框
       this.hoverBox.hide()
-      
+
       // 设置弹框打开状态
       this.isDialogOpen = true
       this.isContextMenuOpen = true // 设置悬浮菜单打开状态
-      
+
       console.log('isContextMenuOpen set to:', this.isContextMenuOpen)
-      
+
       // 计算菜单位置
       const iconRect = e.target.getBoundingClientRect()
       const position = {
         x: iconRect.left,
         y: iconRect.bottom + 5
       }
-      
+
       // 显示Vue悬浮菜单
       const result = await this.contextMenuManager.showContextMenu({
         position,
         annotationInfo: { selector, text }
       })
-      
+
       console.log('Context menu result:', result)
-      
+
       if (result) {
         const { action, annotationInfo } = result
-        
+
         if (action === 'edit') {
           await this.handleEditAnnotation(annotationInfo)
         } else if (action === 'delete') {
@@ -184,24 +184,24 @@ export class EventHandler {
   async handleEditAnnotation(annotationInfo) {
     console.log('=== handleEditAnnotation ===')
     console.log('annotationInfo:', annotationInfo)
-    
+
     if (!annotationInfo) return
-    
+
     try {
       // 隐藏高亮框
       this.hoverBox.hide()
-      
+
       // 设置标注框打开状态
       this.isDialogOpen = true
       console.log('Calling annotationManager.editAnnotation with:', annotationInfo.selector, annotationInfo.text)
-      
+
       const success = await this.annotationManager.editAnnotation(
-        annotationInfo.selector, 
+        annotationInfo.selector,
         annotationInfo.text
       )
-      
+
       console.log('Edit annotation result:', success)
-      
+
       if (success) {
         await this.renderAnnotations()
       }
@@ -217,18 +217,18 @@ export class EventHandler {
    */
   async handleDeleteAnnotation(annotationInfo) {
     if (!annotationInfo) return
-    
+
     try {
       // 隐藏高亮框
       this.hoverBox.hide()
-      
+
       // 设置标注框打开状态
       this.isDialogOpen = true
-      
+
       const success = await this.annotationManager.confirmDeleteAnnotation(
         annotationInfo.selector
       )
-      
+
       if (success) {
         await this.renderAnnotations()
       }
@@ -257,10 +257,10 @@ export class EventHandler {
       console.log('标注模式切换', { annotationMode: this.annotationMode })
       if (this.annotationMode) {
         this.hoverBox.create()
-        ElMessage.success('标注模式已开启，移动鼠标选择元素，点击即可添加说明')
+        this.toastManager.show('标注模式已开启，移动鼠标选择元素，点击即可添加说明', 'success')
       } else {
         this.hoverBox.hide()
-        ElMessage.success('标注模式已关闭')
+        this.toastManager.show('标注模式已关闭', 'success')
       }
     }
   }
@@ -271,12 +271,12 @@ export class EventHandler {
   init() {
     // 监听消息
     chrome.runtime.onMessage.addListener(this.messageListener)
-    
+
     // 添加事件监听器
     document.addEventListener('mousemove', this.handleMouseMove)
     document.addEventListener('click', this.handleClick)
     document.addEventListener('click', this.handleDocumentClick)
-    
+
     // 初始渲染标注
     this.renderAnnotations()
   }
@@ -290,17 +290,20 @@ export class EventHandler {
     document.removeEventListener('mousemove', this.handleMouseMove)
     document.removeEventListener('click', this.handleClick)
     document.removeEventListener('click', this.handleDocumentClick)
-    
+
     // 清理UI组件
     this.hoverBox.destroy()
     AnnotationIcon.cleanup()
-    
+
     // 清理管理器（包括Vue组件）
     if (this.contextMenuManager) {
       this.contextMenuManager.destroy()
     }
     if (this.annotationManager) {
       this.annotationManager.destroy()
+    }
+    if (this.toastManager) {
+      this.toastManager.destroy()
     }
   }
 }

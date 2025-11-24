@@ -6,6 +6,8 @@
 import { createApp } from 'vue'
 import AnnotationDialog from './AnnotationDialog.vue'
 import ContextMenu from './ContextMenu.vue'
+import Toast from './Toast.vue'
+import { shadowRootInstance } from '../main.js'
 
 /**
  * Vue组件管理器类
@@ -30,21 +32,30 @@ export class VueComponentManager {
       this.destroyApp(id)
     }
 
+    // 确保 Shadow Root 已创建
+    if (!shadowRootInstance) {
+      console.error('VueComponentManager: Shadow Root not initialized')
+      return null
+    }
+
+    console.log('VueComponentManager: Creating app for', id)
+
     // 创建容器
     const container = document.createElement('div')
     container.id = `vue-component-${id}`
     container.className = 'mark-chrome-extension-container'
-    document.body.appendChild(container)
+    shadowRootInstance.appendChild(container)
+    console.log('VueComponentManager: Container appended to Shadow Root', container)
     this.containers.set(id, container)
 
     // 创建Vue应用
     const app = createApp(component, props)
-    
+
     // 添加事件监听器
     Object.keys(listeners).forEach(event => {
       app.config.globalProperties[`on${event.charAt(0).toUpperCase() + event.slice(1)}`] = listeners[event]
     })
-    
+
     app.mount(container)
     this.apps.set(id, app)
 
@@ -108,7 +119,7 @@ export class ContextMenuManager {
       // 创建全局事件处理器
       const handleEvent = (event) => {
         const { type, detail } = event.detail || {}
-        
+
         if (type === 'edit') {
           resolve({ action: 'edit', annotationInfo: detail })
           this.hideMenu()
@@ -120,13 +131,13 @@ export class ContextMenuManager {
           this.hideMenu()
         }
       }
-      
+
       // 添加全局事件监听器
       document.addEventListener('context-menu-event', handleEvent)
-      
+
       // 存储事件处理器以便清理
       this.currentEventHandler = handleEvent
-      
+
       // 创建Vue应用
       this.menuApp = this.vueManager.createApp(this.menuId, ContextMenu, {
         visible: true,
@@ -144,7 +155,7 @@ export class ContextMenuManager {
       this.vueManager.destroyApp(this.menuId)
       this.menuApp = null
     }
-    
+
     // 清理事件监听器
     if (this.currentEventHandler) {
       document.removeEventListener('context-menu-event', this.currentEventHandler)
@@ -178,21 +189,29 @@ export class AnnotationDialogManager {
    */
   async showAddDialog(options = {}) {
     return new Promise((resolve) => {
+      // 创建事件监听器
+      const handleEvent = (event) => {
+        const { type, value } = event.detail || {}
+        if (type === 'confirm') {
+          resolve(value)
+          this.hideDialog()
+        } else if (type === 'cancel') {
+          resolve(null)
+          this.hideDialog()
+        }
+      }
+
+      // 添加事件监听器
+      document.addEventListener('annotation-dialog-event', handleEvent)
+      this.currentEventHandler = handleEvent
+
       this.dialogApp = this.vueManager.createApp(this.dialogId, AnnotationDialog, {
         visible: true,
         title: options.title || '添加标注',
         label: options.label || '请输入该元素的说明：',
         placeholder: options.placeholder || '请输入标注内容...',
         confirmText: options.confirmText || '确定',
-        type: 'add',
-        onConfirm: (value) => {
-          resolve(value)
-          this.hideDialog()
-        },
-        onCancel: () => {
-          resolve(null)
-          this.hideDialog()
-        }
+        type: 'add'
       })
     })
   }
@@ -270,6 +289,47 @@ export class AnnotationDialogManager {
     if (this.currentEventHandler) {
       document.removeEventListener('annotation-dialog-event', this.currentEventHandler)
       this.currentEventHandler = null
+    }
+  }
+
+  /**
+   * 销毁管理器
+   */
+  destroy() {
+    this.vueManager.destroyAll()
+  }
+}
+
+/**
+ * 消息提示管理器
+ */
+export class ToastManager {
+  constructor() {
+    this.vueManager = new VueComponentManager()
+    this.toastApp = null
+    this.toastId = 'toast-notification'
+  }
+
+  /**
+   * 显示消息提示
+   * @param {string} message - 消息内容
+   * @param {string} type - 消息类型 (success, warning, error, info)
+   * @param {number} duration - 显示时长 (ms)
+   */
+  show(message, type = 'info', duration = 3000) {
+    // 每次显示新的toast都重新创建应用，简单粗暴但有效
+    this.toastApp = this.vueManager.createApp(this.toastId, Toast, {
+      message,
+      type,
+      duration
+    })
+
+    // 自动销毁逻辑由组件内部控制显示隐藏，这里设置定时器清理应用实例
+    if (duration > 0) {
+      setTimeout(() => {
+        this.vueManager.destroyApp(this.toastId)
+        this.toastApp = null
+      }, duration + 500) // 多给500ms让动画播放完
     }
   }
 
